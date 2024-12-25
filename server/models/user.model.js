@@ -38,7 +38,7 @@ userSchema.methods.generateAuthToken = function () {
     if (!process.env.JWT_SECRET) {
         throw new Error("JWT_SECRET is not defined in the environment variables");
     }
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
 };
 
 userSchema.methods.comparePassword = async function (password) {

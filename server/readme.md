@@ -1,128 +1,118 @@
-# API Documentation: `/users/register`
+# User Routes Documentation
 
-## Endpoint Overview
+This document outlines the user-related routes available in the application. All routes use the `express-validator` middleware for validation and custom middleware for authentication where required.
 
-The `/users/register` endpoint is used to register a new user in the system. It accepts user details such as full name, email, and password, hashes the password, creates a new user record in the database, and returns an authentication token along with the created user data.
+## Routes
 
----
+### 1. Register User
 
-## Endpoint Details
+**Endpoint:** `/register`
 
-- **URL**: `/users/register`
-- **Method**: `POST`
-- **Content-Type**: `application/json`
+**Method:** `POST`
 
----
+**Description:** Allows a new user to register by providing the required details.
 
-## Request Structure
-
-### **Headers**
-
-- `Content-Type`: `application/json`
-
-### **Request Body**
-
-The body of the request must be a JSON object containing the following fields:
-
-| Field     | Type   | Required | Description                                   |
-| --------- | ------ | -------- | --------------------------------------------- |
-| fullname  | Object | Yes      | An object containing the user's full name.    |
-| firstname | String | Yes      | The user's first name (minimum 3 characters). |
-| lastname  | String | Yes      | The user's last name (minimum 3 characters).  |
-| email     | String | Yes      | The user's email address (must be unique).    |
-| password  | String | Yes      | The user's password (minimum 6 characters).   |
-
-#### **Example Request Body**
+**Request Body:**
 
 ```json
 {
+  "email": "user@example.com",
   "fullname": {
     "firstname": "John",
     "lastname": "Doe"
   },
-  "email": "john.doe@example.com",
-  "password": "securepassword"
+  "password": "password123"
 }
 ```
+
+**Validation Rules:**
+
+- `email`: Must be a valid email address.
+- `fullname.firstname`: Must be at least 3 characters long.
+- `password`: Must be at least 6 characters long.
+
+**Response:**
+
+- `201`: User created successfully.
+- `400`: Validation errors or missing required fields.
 
 ---
 
-## Response Structure
+### 2. Login User
 
-### **Successful Response**
+**Endpoint:** `/login`
 
-**Status Code**: `201 Created`
+**Method:** `POST`
 
-The response includes the created user data and an authentication token.
+**Description:** Authenticates a user and returns a token for accessing protected routes.
 
-#### **Example Successful Response**
-
-```json
-{
-  "user": {
-    "_id": "64b9c1234f0b6a2c8d7f9123",
-    "fullname": {
-      "firstname": "John",
-      "lastname": "Doe"
-    },
-    "email": "john.doe@example.com",
-    "password": "<hashed_password>"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-### **Validation Error Response**
-
-**Status Code**: `400 Bad Request`
-
-Returned if the input data fails validation (e.g., missing fields, invalid email).
-
-#### **Example Validation Error Response**
+**Request Body:**
 
 ```json
 {
-  "errors": [
-    {
-      "msg": "Email must be a valid email address",
-      "param": "email",
-      "location": "body"
-    }
-  ]
+  "email": "user@example.com",
+  "password": "password123"
 }
 ```
 
-### **Internal Server Error Response**
+**Validation Rules:**
 
-**Status Code**: `500 Internal Server Error`
+- `email`: Must be a valid email address.
+- `password`: Must be at least 6 characters long.
 
-Returned if there is an unexpected error while processing the request.
+**Response:**
 
-#### **Example Internal Server Error Response**
-
-```json
-{
-  "error": "An unexpected error occurred"
-}
-```
+- `200`: Login successful, returns user details and token.
+- `401`: Invalid email or password.
+- `400`: Validation errors.
 
 ---
 
-## Validation Rules
+### 3. Get User Profile
 
-1. **Fullname Validation**:
-   - `firstname` and `lastname` must each be at least 3 characters long.
-2. **Email Validation**:
+**Endpoint:** `/profile`
 
-   - Must be a valid email format.
-   - Must be unique.
+**Method:** `GET`
 
-3. **Password Validation**:
-   - Must be at least 6 characters long.
+**Description:** Fetches the profile of the authenticated user.
+
+**Authentication:** Requires `Authorization` header with a valid Bearer token or cookie token.
+
+**Response:**
+
+- `200`: Returns user profile.
+- `401`: Unauthorized or invalid token.
 
 ---
 
-## Notes
+### 4. Logout User
 
-- Ensure that the `JWT_SECRET` environment variable is set in your server to enable token generation.
-- Always hash passwords before saving them to the database.
+**Endpoint:** `/logout`
+
+**Method:** `GET`
+
+**Description:** Logs out the user by clearing the authentication token and adding it to a blacklist.
+
+**Authentication:** Requires `Authorization` header with a valid Bearer token or cookie token.
+
+**Response:**
+
+- `200`: Successfully logged out.
+- `400`: Token not provided.
+- `401`: Unauthorized or invalid token.
+
+---
+
+## Middleware
+
+### Authentication Middleware
+
+**Name:** `authUser`
+
+**Description:** Ensures the user is authenticated by verifying the token from the `Authorization` header or cookies.
+
+### Validation Middleware
+
+**Library:** `express-validator`
+
+**Description:** Validates request body fields based on specified rules for each route.
