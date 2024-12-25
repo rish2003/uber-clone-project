@@ -1,118 +1,172 @@
-# User Routes Documentation
+# API Documentation
 
-This document outlines the user-related routes available in the application. All routes use the `express-validator` middleware for validation and custom middleware for authentication where required.
+This document provides details about the API endpoints available in the project, including routes for users and captains. Each endpoint is described with its method, URL, required data, and responses.
 
-## Routes
+## User Routes
 
-### 1. Register User
+### Register User
 
-**Endpoint:** `/register`
+**POST** `/register`
 
-**Method:** `POST`
+- **Description**: Registers a new user.
+- **Request Body**:
+  ```json
+  {
+    "fullname": { "firstname": "string" },
+    "email": "string",
+    "password": "string"
+  }
+  ```
+- **Validation**:
+  - `email`: Must be a valid email.
+  - `fullname.firstname`: Minimum 3 characters.
+  - `password`: Minimum 6 characters.
 
-**Description:** Allows a new user to register by providing the required details.
+### Login User
 
-**Request Body:**
+**POST** `/login`
 
-```json
-{
-  "email": "user@example.com",
-  "fullname": {
-    "firstname": "John",
-    "lastname": "Doe"
-  },
-  "password": "password123"
-}
-```
+- **Description**: Logs in an existing user.
+- **Request Body**:
+  ```json
+  {
+    "email": "string",
+    "password": "string"
+  }
+  ```
+- **Validation**:
+  - `email`: Must be a valid email.
+  - `password`: Minimum 6 characters.
 
-**Validation Rules:**
+### Get User Profile
 
-- `email`: Must be a valid email address.
-- `fullname.firstname`: Must be at least 3 characters long.
-- `password`: Must be at least 6 characters long.
+**GET** `/profile`
 
-**Response:**
+- **Description**: Fetches the profile of the logged-in user.
+- **Authorization**: Requires Bearer token.
 
-- `201`: User created successfully.
-- `400`: Validation errors or missing required fields.
+### Logout User
 
----
+**GET** `/logout`
 
-### 2. Login User
+- **Description**: Logs out the user by blacklisting the token.
+- **Authorization**: Requires Bearer token.
 
-**Endpoint:** `/login`
+## Captain Routes
 
-**Method:** `POST`
+### Register Captain
 
-**Description:** Authenticates a user and returns a token for accessing protected routes.
+**POST** `/register`
 
-**Request Body:**
+- **Description**: Registers a new captain.
+- **Request Body**:
+  ```json
+  {
+    "fullname": { "firstname": "string", "lastname": "string" },
+    "email": "string",
+    "password": "string",
+    "vehicle": {
+      "color": "string",
+      "plate": "string",
+      "capacity": "number",
+      "vehicleType": "string"
+    }
+  }
+  ```
+- **Validation**:
+  - `email`: Must be a valid email.
+  - `fullname.firstname`: Minimum 3 characters.
+  - `password`: Minimum 6 characters.
+  - `vehicle.color`: Minimum 3 characters.
+  - `vehicle.plate`: Minimum 6 characters.
+  - `vehicle.capacity`: Minimum value of 1.
+  - `vehicle.vehicleType`: Minimum 3 characters.
 
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
+### Login Captain
 
-**Validation Rules:**
+**POST** `/login`
 
-- `email`: Must be a valid email address.
-- `password`: Must be at least 6 characters long.
+- **Description**: Logs in an existing captain.
+- **Request Body**:
+  ```json
+  {
+    "email": "string",
+    "password": "string"
+  }
+  ```
+- **Validation**:
+  - `email`: Must be a valid email.
+  - `password`: Minimum 6 characters.
 
-**Response:**
+### Get Captain Profile
 
-- `200`: Login successful, returns user details and token.
-- `401`: Invalid email or password.
-- `400`: Validation errors.
+**GET** `/profile`
 
----
+- **Description**: Fetches the profile of the logged-in captain.
+- **Authorization**: Requires Bearer token.
 
-### 3. Get User Profile
+### Logout Captain
 
-**Endpoint:** `/profile`
+**GET** `/logout`
 
-**Method:** `GET`
+- **Description**: Logs out the captain by blacklisting the token.
+- **Authorization**: Requires Bearer token.
 
-**Description:** Fetches the profile of the authenticated user.
+## Models
 
-**Authentication:** Requires `Authorization` header with a valid Bearer token or cookie token.
+### User Model
 
-**Response:**
+- `fullname`: Object containing:
+  - `firstname`: String (required)
+  - `lastname`: String
+- `email`: String (unique, required)
+- `password`: String (hashed, required)
+- `role`: String (e.g., "user", "captain")
+- `profile`: Object containing additional details.
 
-- `200`: Returns user profile.
-- `401`: Unauthorized or invalid token.
+### Captain Model
 
----
-
-### 4. Logout User
-
-**Endpoint:** `/logout`
-
-**Method:** `GET`
-
-**Description:** Logs out the user by clearing the authentication token and adding it to a blacklist.
-
-**Authentication:** Requires `Authorization` header with a valid Bearer token or cookie token.
-
-**Response:**
-
-- `200`: Successfully logged out.
-- `400`: Token not provided.
-- `401`: Unauthorized or invalid token.
-
----
+- `fullname`: Object containing:
+  - `firstname`: String (required)
+  - `lastname`: String
+- `email`: String (unique, required)
+- `password`: String (hashed, required)
+- `vehicle`: Object containing:
+  - `color`: String (required)
+  - `plate`: String (required, minimum length 6)
+  - `capacity`: Number (required, minimum value 1)
+  - `vehicleType`: String (required, e.g., "car", "motorbike", "auto")
+- `status`: Enum ["active", "inactive"] (default: "inactive")
+- `location`: Object containing:
+  - `latitude`: Number
+  - `longitude`: Number
 
 ## Middleware
 
-### Authentication Middleware
+### `authUser`
 
-**Name:** `authUser`
+- Verifies the user's token and attaches the user information to the request.
 
-**Description:** Ensures the user is authenticated by verifying the token from the `Authorization` header or cookies.
+### `authCaptain`
 
-### Validation Middleware
+- Verifies the captain's token and attaches the captain information to the request.
 
-**Library:** `express-validator`
+## Services
 
-**Description:** Validates request body fields based on specified rules for each route.
+### `createCaptain`
+
+- Creates a new captain in the database.
+- **Input**: Required fields for a captain.
+- **Output**: Created captain object.
+
+## Token Management
+
+- Tokens are generated using JWT.
+- Tokens can be blacklisted upon logout to prevent reuse.
+
+## Environment Variables
+
+- `JWT_SECRET`: Secret key for signing tokens.
+- `NODE_ENV`: Environment (e.g., "production").
+
+Ensure all environment variables are set before running the project.

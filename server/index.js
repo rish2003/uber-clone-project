@@ -3,7 +3,8 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 const index = express();
-import { userRoutes, loginRoute, getUserProfileRoute, logoutUserRoute } from "./routes/user.routes.js"
+import { userRegisterRoute, loginRoute, getUserProfileRoute, logoutUserRoute } from "./routes/user.routes.js"
+import { CaptainRegisterRoute, CaptainLoginRoute, CaptainProfileRoute, CaptainLogoutRoute } from "./routes/captain.routes.js"
 import cookieParser from "cookie-parser";
 
 import connectToDb from "./db/db.js";
@@ -18,9 +19,16 @@ index.get("/", (req, res) => {
     res.send("Hello World!");
 })
 
-index.use("/users", userRoutes);
+//user routes 
+index.use("/users", userRegisterRoute);
 index.use("/users", loginRoute);
 index.use("/users", getUserProfileRoute);
 index.use("/users", logoutUserRoute);
 
-export default index
+//captain routes
+index.use("/captains", CaptainRegisterRoute);
+index.use("/captains", CaptainLoginRoute);
+index.use("/captains", CaptainProfileRoute);
+index.use("/captains", CaptainLogoutRoute);
+
+export default index;

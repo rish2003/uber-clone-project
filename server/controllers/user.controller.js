@@ -12,6 +12,11 @@ export const registerUser = async (req, res) => {
 
         const { fullname, email, password } = req.body;
 
+        const userAlreadyExist = await User.findOne({ email });
+        if (userAlreadyExist) {
+            return res.status(400).json({ error: "User already exist" });
+        }
+
         if (!fullname || !fullname.firstname || !fullname.lastname) {
             return res.status(400).json({ error: "Fullname must include firstname and lastname" });
         }
