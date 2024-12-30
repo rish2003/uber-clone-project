@@ -5,7 +5,7 @@ import * as authMiddleware from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.post(
+export const RideRoute = router.post(
     '/create',
     authMiddleware.authUser,
     body('pickup').isString().isLength({ min: 3 }).withMessage('Invalid pickup address'),
@@ -14,7 +14,7 @@ router.post(
     rideController.createRide
 );
 
-router.get(
+export const getFareRoute = router.get(
     '/get-fare',
     authMiddleware.authUser,
     query('pickup').isString().isLength({ min: 3 }).withMessage('Invalid pickup address'),
@@ -22,14 +22,14 @@ router.get(
     rideController.getFare
 );
 
-router.post(
+export const RideConfirmRoute = router.post(
     '/confirm',
     authMiddleware.authCaptain,
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.confirmRide
 );
 
-router.get(
+export const RideStartRoute = router.get(
     '/start-ride',
     authMiddleware.authCaptain,
     query('rideId').isMongoId().withMessage('Invalid ride id'),
@@ -37,11 +37,11 @@ router.get(
     rideController.startRide
 );
 
-router.post(
+export const RideEndRoute = router.post(
     '/end-ride',
     authMiddleware.authCaptain,
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.endRide
 );
 
-export default router;
+

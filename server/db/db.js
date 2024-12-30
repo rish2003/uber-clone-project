@@ -10,4 +10,3 @@ function connectToDb() {
 }
 
 export default connectToDb;
- 
