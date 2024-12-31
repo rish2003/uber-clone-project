@@ -1,26 +1,28 @@
-import express from "express";
-import { query } from "express-validator";
-import { authUser } from "../middlewares/auth.middleware.js";
-import {
-    getCoordinates,
-    getDistanceTime,
-    getAutoCompleteSuggestions
-} from "../controllers/map.controller.js";
-
+const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middlewares/auth.middleware');
+const mapController = require('../controllers/map.controller');
+const { query } = require('express-validator');
 
-export const GetCoordinatesRoute = router.get("/get-coordinates", [
+router.get('/get-coordinates',
     query('address').isString().isLength({ min: 3 }),
-    authUser,
-], getCoordinates);
+    authMiddleware.authUser,
+    mapController.getCoordinates
+);
 
-export const GetDistanceTimeRoute = router.get("/get-distance-time", [
+router.get('/get-distance-time',
     query('origin').isString().isLength({ min: 3 }),
     query('destination').isString().isLength({ min: 3 }),
-    authUser,
-], getDistanceTime);
+    authMiddleware.authUser,
+    mapController.getDistanceTime
+)
 
-export const GetSuggestionsRoute = router.get("/get-suggestions", [
+router.get('/get-suggestions',
     query('input').isString().isLength({ min: 3 }),
-    authUser,
-], getAutoCompleteSuggestions);
+    authMiddleware.authUser,
+    mapController.getAutoCompleteSuggestions
+)
+
+
+
+module.exports = router;

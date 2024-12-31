@@ -1,106 +1,79 @@
-import { validationResult } from "express-validator";
-import createUser from "../services/user.service.js";
-import User from "../models/user.model.js";
-import BlacklistToken from "../models/blacklistToken.model.js";
+const userModel = require('../models/user.model');
+const userService = require('../services/user.service');
+const { validationResult } = require('express-validator');
+const blackListTokenModel = require('../models/blackListToken.model');
 
-export const registerUser = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+module.exports.registerUser = async (req, res, next) => {
 
-        const { fullname, email, password } = req.body;
-
-        const userAlreadyExist = await User.findOne({ email });
-        if (userAlreadyExist) {
-            return res.status(400).json({ error: "User already exist" });
-        }
-
-        if (!fullname || !fullname.firstname || !fullname.lastname) {
-            return res.status(400).json({ error: "Fullname must include firstname and lastname" });
-        }
-
-        const hashedPassword = await User.hashPassword(password, 10);
-
-        const user = await createUser({
-            firstname: fullname.firstname,
-            lastname: fullname.lastname,
-            email,
-            password: hashedPassword,
-        });
-
-        const token = user.generateAuthToken();
-        res.status(201).json({ user, token });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
-};
 
-export const loginUser = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+    const { fullname, email, password } = req.body;
 
-        const { email, password } = req.body;
+    const isUserAlready = await userModel.findOne({ email });
 
-        const user = await User.findOne({ email }).select("+password");
-        if (!user) {
-            return res.status(401).json({ message: "Invalid email or password" });
-        }
-
-        const isPasswordCorrect = await user.comparePassword(password);
-        if (!isPasswordCorrect) {
-            return res.status(401).json({ error: "Incorrect password" });
-        }
-
-        const token = user.generateAuthToken();
-
-        // Set token in cookie
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-
-        res.status(200).json({ user, token });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (isUserAlready) {
+        return res.status(400).json({ message: 'User already exist' });
     }
-};
 
-export const getUserProfile = async (req, res) => {
-    try {
-        res.status(200).json(req.user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    const hashedPassword = await userModel.hashPassword(password);
+
+    const user = await userService.createUser({
+        firstname: fullname.firstname,
+        lastname: fullname.lastname,
+        email,
+        password: hashedPassword
+    });
+
+    const token = user.generateAuthToken();
+
+    res.status(201).json({ token, user });
+
+
+}
+
+module.exports.loginUser = async (req, res, next) => {
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
-};
 
-export const logoutUser = async (req, res) => {
-    try {
-        // Clear the token cookie
-        res.clearCookie("token");
+    const { email, password } = req.body;
 
-        // Safely extract token from Authorization header or cookies
-        const authHeader = req.headers.authorization;
-        const cookieToken = req.cookies?.token;
+    const user = await userModel.findOne({ email }).select('+password');
 
-        const token = authHeader?.startsWith("Bearer ")
-            ? authHeader.split(" ")[1]
-            : cookieToken;
-
-        if (!token) {
-            return res.status(400).json({ error: "No token provided" });
-        }
-
-        // Add token to blacklist
-        await BlacklistToken.create({ token });
-
-        res.status(200).json({ message: "Logged out successfully" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!user) {
+        return res.status(401).json({ message: 'Invalid email or password' });
     }
-};
+
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const token = user.generateAuthToken();
+
+    res.cookie('token', token);
+
+    res.status(200).json({ token, user });
+}
+
+module.exports.getUserProfile = async (req, res, next) => {
+
+    res.status(200).json(req.user);
+
+}
+
+module.exports.logoutUser = async (req, res, next) => {
+    res.clearCookie('token');
+    const token = req.cookies.token || req.headers.authorization.split(' ')[1];
+
+    await blackListTokenModel.create({ token });
+
+    res.status(200).json({ message: 'Logged out' });
+
+}
