@@ -1,4 +1,4 @@
-import * as socketIo from 'socket.io';
+import { Server as socketIo } from 'socket.io';  // Correct import for ESM
 
 import User from './models/user.model.js';
 import Captain from './models/captain.model.js';
@@ -6,11 +6,11 @@ import Captain from './models/captain.model.js';
 let io;
 
 const initializeSocket = (server) => {
-    io = socketIo(server, {
+    io = new socketIo(server, {  // Initialize socket.io correctly
         cors: {
             origin: '*',
-            methods: ['GET', 'POST']
-        }
+            methods: ['GET', 'POST'],
+        },
     });
 
     io.on('connection', (socket) => {
@@ -19,9 +19,9 @@ const initializeSocket = (server) => {
         socket.on('join', async (data) => {
             const { userId, userType } = data;
 
-            if (userType === 'user') {
+            if (userType === 'User') {
                 await User.findByIdAndUpdate(userId, { socketId: socket.id });
-            } else if (userType === 'captain') {
+            } else if (userType === 'Captain') {
                 await Captain.findByIdAndUpdate(userId, { socketId: socket.id });
             }
         });
@@ -36,8 +36,8 @@ const initializeSocket = (server) => {
             await Captain.findByIdAndUpdate(userId, {
                 location: {
                     ltd: location.ltd,
-                    lng: location.lng
-                }
+                    lng: location.lng,
+                },
             });
         });
 
@@ -45,7 +45,7 @@ const initializeSocket = (server) => {
             console.log(`Client disconnected: ${socket.id}`);
         });
     });
-}
+};
 
 const sendMessageToSocketId = (socketId, messageObject) => {
     console.log(messageObject);
@@ -55,6 +55,6 @@ const sendMessageToSocketId = (socketId, messageObject) => {
     } else {
         console.log('Socket.io not initialized.');
     }
-}
+};
 
 export { initializeSocket, sendMessageToSocketId };

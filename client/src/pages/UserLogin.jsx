@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
-import { useState, useContext } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { UserDataContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,7 @@ import axios from "axios";
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState({});
 
   const { user, setUser } = useContext(UserDataContext);
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ const UserLogin = () => {
             }}
             className="bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base"
             type="email"
-            placeholder="email@example.com"
+            placeholder="Enter Email Here"
           />
 
           <h3 className="text-lg font-medium mb-2">Enter Password</h3>

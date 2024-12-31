@@ -1,6 +1,7 @@
-/* eslint-disable no-unused-vars */
+// eslint-disable-next-line no-unused-vars
 import React from "react";
 import { Link, useLocation } from "react-router-dom"; // Added useLocation
+// eslint-disable-next-line no-unused-vars
 import { useEffect, useContext } from "react";
 import { SocketContext } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom";
@@ -50,9 +51,7 @@ const Riding = () => {
             <div className="flex items-center gap-5 p-3 border-b-2">
               <i className="text-lg ri-map-pin-2-fill"></i>
               <div>
-                <h3 className="text-lg font-medium">
-                  404 A Saraswati Vidyanandad
-                </h3>
+                <h3 className="text-lg font-medium">562/11-A</h3>
                 <p className="text-sm -mt-1 text-gray-600">
                   {ride?.destination}
                 </p>

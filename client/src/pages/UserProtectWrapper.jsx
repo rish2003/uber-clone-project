@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from "react";
@@ -34,6 +33,7 @@ const UserProtectWrapper = ({ children }) => {
         localStorage.removeItem("token");
         navigate("/login");
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   if (isLoading) {
